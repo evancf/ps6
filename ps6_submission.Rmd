@@ -1,0 +1,230 @@
+---
+title: "Problem set 6"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg))
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+pkg <- c("sjPlot", "lme4")
+ipak(pkg)
+options(warn = -1) 
+```
+
+## Question 1: How has Magellanic penguin reproductive success changed over time?
+
+### Generate dataset
+*Do not modify*
+
+```{r}
+set.seed(2)
+n <- 1000
+year <- rep(1:40, each = 25) # Year of study
+nest_num <- rpois(1000, 14)
+nest_qual <- rnorm(max(nest_num), mean = 0, sd = 0.6)[nest_num]
+nest_id <- as.factor(letters[nest_num])
+
+fledged <- rbinom(1000, plogis(0.35 - 0.02 * year + nest_qual), size = 2)
+
+
+d1 <- data.frame(year = year,
+                 fledged = fledged,
+                 nest_id = nest_id)
+
+```
+
+### Methods
+
+*Instructions 1: design a model to assess how the probability of chick fledging has changed over the course of a 40 year study. Magellanic penguins produce two eggs during each nesting attempt. "Year" indicates study year. "Fledged" indicates how many out of the two eggs produced results in a fledgling. Nest id gives a unique identifier for each nest, which may vary in quality and are used each year. Include an intercept random effect for study year. Describe this model.*
+
+#### To assess how fledging probability has changed over time, we used a generalized linear mixed effects with a binomial error distribution. The response varable described the number of chicks fledged out of two eggs laid and the predictor variable was study year. We allowed random intercepts by nest ID.
+
+
+
+*Instructions 2: Run model, produce summary, and plot results.*
+
+```{r}
+
+mod1 <- glmer(cbind(fledged, 2-fledged) ~ year + (1|nest_id),
+             family = "binomial",
+             data = d1)
+
+summary(mod1)
+
+# Produce a plot with fit line and 95% confidence interval using sjPlot package
+plot_model(mod1, type = "pred", 
+           axis.title = c("Year", "Percent fledged"),
+           title = "")
+```
+
+
+### Results
+
+*Instructions 3: describe the model results. A simpler description is okay because the figure should give a sense for the magnitude.*
+
+#### The probability of fledging decreased over the course of the study ($\beta$~year~ = -0.013 ± 0.004 SE, *p* = 0.0014).
+
+
+
+
+
+## Question 2: How do tree species differ in the diversity of seed dispersers?
+
+### Generate dataset
+*Do not modify*
+
+```{r}
+set.seed(2)
+n <- 1000
+spp_num <- rep(1:2, length.out = n)
+spp <- letters[spp_num]
+spp_effect <- exp(rnorm(length(unique(spp)), 1, sd = 0.2))
+site_num <- rep(1:8, length.out = n)
+site_effect <- rnorm(max(site_num), mean = 0, sd = 0.3)[site_num]
+site_id <- as.factor(letters[site_num])
+
+n_dispersers <- rpois(n, spp_effect[spp_num] + site_effect)
+
+
+d2 <- data.frame(n_dispersers = n_dispersers,
+                 spp = spp,
+                 site_id = site_id)
+
+```
+
+### Methods
+
+*Instructions 1: design a model to assess how the mean number of seed disperser species differs between two tree species. The data are collected by observing fruiting trees of the two species (called a, b) at 8 different study sites. Each row of d2 shows the number of seed disperser species recorded during a 3 hour observation at a plant, and each individual tree is only monitored once. To account for the non-independence introduced by recording multiple trees per site (certain sites may have more or fewer seed disperser species), include an intercept random effect for site. Describe this model.*
+
+#### [Fill in]
+
+
+
+*Instructions 2: Run model, produce summary, and plot results.*
+
+```{r}
+
+mod2 <- FILL_IN
+
+summary(mod2)
+
+# Produce a plot with fit line and 95% confidence interval using sjPlot package
+plot_model(mod2, type = "pred", 
+           axis.title = FILL_IN,
+           title = "")
+```
+
+
+### Results
+
+*Instructions 3: describe the model results. A simpler description is okay because the figure should give a sense for the magnitude.*
+
+#### [Fill in results text]
+
+
+
+
+## Question 3: How does primary productivity (ammount of photosynthesizing organisms) relate to fish abundance?
+
+### Generate dataset
+*Do not modify*
+
+```{r}
+set.seed(2)
+n <- 22
+chlorophyll <- rgamma(n, exp(rnorm(n, 1, 0.4)))
+unobserved_error <- rgamma(n, 2)
+fish_per_trawl <- rpois(n, 0.75 * chlorophyll + unobserved_error)
+
+d3 <- data.frame(chlorophyll = chlorophyll,
+                 fish_per_trawl = fish_per_trawl)
+
+```
+
+### Methods
+
+*Instructions 1: design a model to assess the relationship between yearly peak chlorophyll concentration (remotely sensed using satellite imagery, indicating primary productivity of photosynthesizing organisms) relates to the number of fish from a trawl sample collected that year. Describe this model.*
+
+#### [Fill in]
+
+
+*Instructions 2: Run model, produce summary, and plot results.*
+
+```{r}
+
+mod3 <- FILL_IN
+
+summary(mod3)
+
+# Produce a plot with fit line and 95% confidence interval using sjPlot package
+plot_model(mod3, type = "pred", 
+           axis.title = FILL_IN,
+           title = "")
+```
+
+
+### Results
+
+*Instructions 3: describe the model results. A simpler description is okay because the figure should give a sense for the magnitude.*
+
+#### [Fill in results text]
+
+
+
+## Question 4: Do domestic cats increase the probability that mountain lions are infected by bacterial parasites?
+
+### Generate dataset
+*Do not modify*
+
+```{r}
+set.seed(2)
+n <- 480
+state_num <- rep(1:5, length.out = n)
+state <- as.factor(c("Texas", "California", "Montana", "Washington", "Nevada")[state_num])
+state_int_effect <- rnorm(length(unique(state)), sd = 0.15)
+state_slope_effect <- rnorm(length(unique(state)), sd = 0.002)
+
+county_population_density <- rnbinom(n, mu = 105, size = 1)
+infected <- rbinom(n, 
+                   prob = plogis(-4.2 + state_int_effect[state_num] +
+                                   0.005 * county_population_density + state_slope_effect[state_num] * county_population_density), 
+                   size = 1)
+
+d4 <- data.frame(county_population_density = county_population_density,
+                 infected = infected,
+                 state = state)
+
+```
+
+### Methods
+
+*Instructions 1: design a model to assess how infection (1 indicates a mountain lion scat collected in the field tested positive for the bacterial parasite, 0 indicates not infected) is related to human population density, a proxy for domestic cat abundance. Assume that these data were collected in 5 states, but that the focus of the study team is on the overall effect of county population density. So account for potential state-to-state differences in overall parasite prevalence and state-specific relationships between infection and population density by developing a mixed effects model with random slopes and intercepts by state. Describe this model.*
+
+#### [Fill in]
+
+
+*Instructions 2: Run model, produce summary, and plot results.*
+
+```{r}
+
+mod4 <- FILL_IN # Dont worry if you see a warning message
+
+summary(mod4)
+
+# Produce a plot with fit line and 95% confidence interval using sjPlot package
+plot_model(mod4, type = "pred", 
+           #axis.title = FILL_IN,
+           title = "")
+```
+
+
+### Results
+
+*Instructions 3: describe the model results. A simpler description is okay because the figure should give a sense for the magnitude.*
+
+#### [Fill in results text]
